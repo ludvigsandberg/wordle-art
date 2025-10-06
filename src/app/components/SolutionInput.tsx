@@ -3,10 +3,10 @@
 import { useState } from "react"
 
 type SolutionInputProps = {
-    onValidInput: (solution: string) => void
+    setSolution: (solution: string) => void
 }
 
-export default function SolutionInput({ onValidInput }: SolutionInputProps) {
+export default function SolutionInput({ setSolution }: SolutionInputProps) {
     const [value, setValue] = useState("")
 
     const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -17,14 +17,14 @@ export default function SolutionInput({ onValidInput }: SolutionInputProps) {
         setValue(cleaned)
 
         if (cleaned.length === 5) {
-            onValidInput(cleaned)
+            setSolution(cleaned)
         }
     }
 
     const gridWidth = 5 * 64 + 4 * 4
 
     return (
-        <div className="mb-4 flex flex-col" style={{ width: gridWidth }}>
+        <div className="mb-2 flex flex-col" style={{ width: gridWidth }}>
             <div className="relative w-full">
                 <svg
                     className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"

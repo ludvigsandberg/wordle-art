@@ -2,10 +2,11 @@
 
 import BigGrid from "./components/BigGrid"
 import Tabs from "./components/Tabs"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Grid6x5, GridNames } from "./grid"
 import SolutionInput from "./components/SolutionInput"
 import { ALPHANUMERIC_PATTERNS, BLANK_PATTERN, PATTERNS } from "./patterns"
+import { solve } from "./solve"
 
 export default function Home() {
     const [selectedTab, setSelectedTab] = useState(0)
@@ -18,21 +19,68 @@ export default function Home() {
         "horse",
         "horse",
     ])
+    const [solution, setSolution] = useState("horse")
+    const [loading, setLoading] = useState(false)
+    const [noSolution, setNoSolution] = useState(false)
+    const controllerRef = useRef<AbortController | null>(null)
+    const currentSolveId = useRef(0)
 
-    const onValidInput = (solution: string) => {}
+    const solve2 = (grid?: Grid6x5, sol?: string) => {
+        // Cancel previous solve
+        if (controllerRef.current) controllerRef.current.abort()
+
+        const controller = new AbortController()
+        controllerRef.current = controller
+
+        const solveId = ++currentSolveId.current
+        setLoading(true)
+        setNoSolution(false)
+
+        const gridToUse = grid ?? currentGrid
+        const solutionToUse = sol ?? solution
+
+        solve(gridToUse, solutionToUse, controller.signal)
+            .then(({ success, words }) => {
+                if (solveId === currentSolveId.current) {
+                    if (!success) {
+                        setNoSolution(true)
+                    } else {
+                        setCurrentWords(words)
+                    }
+                }
+            })
+            .catch((err) => {
+                if (err.name !== "AbortError") console.error(err)
+            })
+            .finally(() => {
+                if (solveId === currentSolveId.current) setLoading(false)
+            })
+    }
+
+    const updateSolution = (s: string) => {
+        if (s === solution) return
+        setSolution(s)
+        solve2(undefined, s) // pass the new solution directly
+    }
+
+    const updateGrid = (grid: Grid6x5) => {
+        if (currentGrid.flat().join("") === grid.flat().join("")) return
+        setCurrentGrid(grid)
+        solve2(grid) // pass the new grid directly
+    }
 
     const onTabChange = (tab: number) => {
         setSelectedTab(tab)
 
         switch (tab) {
             case 0:
-                setCurrentGrid(PATTERNS[0].grid)
+                updateGrid(PATTERNS[0].grid)
                 break
             case 1:
-                setCurrentGrid(ALPHANUMERIC_PATTERNS[0].grid)
+                updateGrid(ALPHANUMERIC_PATTERNS[0].grid)
                 break
             case 2:
-                setCurrentGrid(BLANK_PATTERN)
+                updateGrid(BLANK_PATTERN)
         }
     }
 
@@ -40,7 +88,7 @@ export default function Home() {
         <div className="flex flex-col h-screen bg-white">
             {/* Header */}
             <header
-                className={`flex flex-col items-center flex-shrink-0 p-4 bg-[var(--wordle-background-gray)]`}
+                className={`flex flex-col items-center flex-shrink-0 p-2 bg-[var(--wordle-background-gray)]`}
             >
                 <a
                     href="https://www.nytimes.com/games/wordle"
@@ -57,11 +105,36 @@ export default function Home() {
             </header>
 
             {/* Main */}
-            <main className="flex flex-col xl:flex-row flex-1 gap-4 p-4">
+            <main className="flex flex-col xl:flex-row flex-1 gap-4 p-2">
                 {/* Left column */}
                 <div className="flex flex-1 flex-col items-center justify-center mb-4 xl:mb-0">
-                    <SolutionInput onValidInput={onValidInput} />
-                    <BigGrid grid={currentGrid} words={currentWords} />
+                    <SolutionInput setSolution={updateSolution} />
+
+                    {/* Output grid and loading icon. */}
+                    <div className="relative inline-block">
+                        <BigGrid grid={currentGrid} words={currentWords} />
+
+                        {/* Loading overlay */}
+                        {loading && (
+                            <div className="absolute inset-0 flex items-center justify-center z-20">
+                                <img
+                                    src="/wordle-icon.svg"
+                                    alt="Loading"
+                                    className="w-12 h-12 animate-spin"
+                                />
+                            </div>
+                        )}
+
+                        {/* No solution overlay */}
+                        {noSolution && !loading && (
+                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center z-20">
+                                <div className="bg-gray-200 px-6 py-4 m-4 rounded-lg shadow-lg text-gray-600 text-center">
+                                    <h1 className="font-karnak text-2xl">Not possible!</h1>
+                                    <p className="">Try a different pattern</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Right column */}
@@ -69,13 +142,13 @@ export default function Home() {
                     <Tabs
                         selectedTab={selectedTab}
                         setSelectedTab={onTabChange}
-                        setCurrentGrid={setCurrentGrid}
+                        setCurrentGrid={updateGrid}
                     />
                 </div>
             </main>
 
             {/* Footer */}
-            <footer className="text-center pb-4">
+            <footer className="text-center pb-2">
                 <p className="text-xs font-light text-gray-600">
                     &copy;{" "}
                     <a
