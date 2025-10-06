@@ -88,7 +88,7 @@ export default function Home() {
         <div className="flex flex-col h-screen bg-white">
             {/* Header */}
             <header
-                className={`flex flex-col items-center flex-shrink-0 p-2 bg-[var(--wordle-background-gray)]`}
+                className={`flex flex-col items-center flex-shrink-0 p-3 bg-[var(--wordle-background-gray)]`}
             >
                 <a
                     href="https://www.nytimes.com/games/wordle"
@@ -96,8 +96,8 @@ export default function Home() {
                     rel="noopener noreferrer"
                 >
                     <div className="flex items-center gap-3">
-                        <img src="/wordle-icon.svg" alt="Wordle Icon" className="h-8 xl:h-10" />
-                        <h1 className="font-karnak font-semibold text-2xl xl:text-3xl">
+                        <img src="/wordle-icon.svg" alt="Wordle Icon" className="h-8 xl:h-12" />
+                        <h1 className="font-karnak font-semibold text-2xl text-gray-900 xl:text-4xl">
                             Wordle Art Generator
                         </h1>
                     </div>
@@ -105,7 +105,7 @@ export default function Home() {
             </header>
 
             {/* Main */}
-            <main className="flex flex-col xl:flex-row flex-1 gap-4 p-2">
+            <main className="flex flex-col xl:flex-row flex-1 gap-4 p-4">
                 {/* Left column */}
                 <div className="flex flex-1 flex-col items-center justify-center mb-4 xl:mb-0">
                     <SolutionInput setSolution={updateSolution} />
@@ -148,7 +148,7 @@ export default function Home() {
             </main>
 
             {/* Footer */}
-            <footer className="text-center pb-2">
+            <footer className="text-center pb-4">
                 <p className="text-xs font-light text-gray-600">
                     &copy;{" "}
                     <a
