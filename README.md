@@ -1,4 +1,2 @@
 # Wordle Art
-
-A website that generates NYT Wordle art.
-
+[Live Demo](https://wordle-art.ludvigsandberg.com/)
